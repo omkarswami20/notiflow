@@ -1,3 +1,6 @@
+require('dotenv').config()
+
+const pool = require('./config/db')
 const fastify = require('fastify')({logger:true})
 
 
@@ -26,16 +29,22 @@ fastify.get('/health', async (request, reply) => {
 
 //start server 
 const start = async () => {
-    try{
-        await fastify.listen({port: 3000, host: '0.0.0.0'})
-        console.log('Server is running on port 3000')
-        console.log('Swagger UI available at http://localhost:3000/docs')
-        console.log('Health check  http://localhost:3000/health')
-    } catch (err) {
-        fastify.log.error(err)
-        process.exit(1)
-    }
-} 
+  try {
+    // DB connection check
+    const client = await pool.connect()
+    client.release()
+    console.log('✅ PostgreSQL connected')
+
+    await fastify.listen({ port: process.env.PORT || 3000, host: '0.0.0.0' })
+    console.log('✅ Server is running on port', process.env.PORT || 3000)
+    console.log('📄 Swagger UI: http://localhost:3000/docs')
+    console.log('❤️  Health check: http://localhost:3000/health')
+  } catch (err) {
+    console.error('❌ Startup failed:', err.message)
+    fastify.log.error(err)
+    process.exit(1)
+  }
+}
 
 
 start()
