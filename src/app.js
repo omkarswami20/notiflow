@@ -18,7 +18,12 @@ fastify.register(require('@fastify/swagger'), {
 
 fastify.register(require('@fastify/swagger-ui'), {
   routePrefix: '/docs'
-}) 
+})  
+
+//routes 
+fastify.register(require('./modules/auth/auth.routes'),{
+  prefix:'/api/auth'
+})
 
 //health check route
 fastify.get('/health', async (request, reply) => {

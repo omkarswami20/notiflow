@@ -1,25 +1,29 @@
-const sendSuccess = (reply, data, message = 'Success', statusCode = 200) => {
-return reply.code(statusCode).send(
-    {
-        sucess:true,
-        messaage,
-        data
-    })
-
+const sendSuccess = (
+  reply,
+  data,
+  message = 'Success',
+  statusCode = 200
+) => {
+  return reply.code(statusCode).send({
+    success: true,
+    message,
+    data
+  })
 }
 
-const sendError = (reply,message = 'something went wrong', statusCode = 500) => {
-    return reply.code(statusCode).send(
-        {
-            sucess:false,
-            message,
-            data:null
-        }
-    )
+const sendError = (
+  reply,
+  message = 'Something went wrong',
+  statusCode = 500
+) => {
+  return reply.code(statusCode).send({
+    success: false,
+    message,
+    data: null
+  })
 }
 
 module.exports = {
-    sendSucess,
-    sendError
+  sendSuccess,
+  sendError
 }
-
