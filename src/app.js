@@ -1,6 +1,7 @@
 require('dotenv').config()
 
 const pool = require('./config/db')
+const redis = require('./config/redis')
 const fastify = require('fastify')({logger:true})
 
 
