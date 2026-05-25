@@ -4,6 +4,8 @@ A production-grade backend REST API built with **Node.js + Fastify**, featuring 
 
 > Built manually from scratch — no auth libraries, no ORM, no boilerplate.
 
+using fastify 
+
 ---
 
 ## 🚀 Live Demo
