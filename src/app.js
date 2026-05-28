@@ -2,6 +2,7 @@ require('dotenv').config()
 
 const pool = require('./config/db')
 const redis = require('./config/redis')
+const { sendEmail } = require('./config/mailer')
 const fastify = require('fastify')({ logger: false }) // clean logs only
 
 // ─── Swagger ───
