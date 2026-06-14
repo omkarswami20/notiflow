@@ -4,13 +4,9 @@ const pool = require('./config/db')
 const { verifyTransporter } = require('./config/mailer')
 const { processQueue } = require('./modules/notification/notification.queue')
 
-const fastify = require('fastify')({
-  logger: false
-})
+const fastify = require('fastify')({ logger: false })
 
-// ─────────────────────────────────────
-// Swagger
-// ─────────────────────────────────────
+// ─── Swagger ───
 fastify.register(require('@fastify/swagger'), {
   openapi: {
     info: {
@@ -19,61 +15,32 @@ fastify.register(require('@fastify/swagger'), {
       version: '1.0.0'
     },
     tags: [
-      {
-        name: 'Auth',
-        description: 'Authentication endpoints'
-      },
-      {
-        name: 'Notifications',
-        description: 'Notification management'
-      }
+      { name: 'Auth', description: 'Authentication endpoints' },
+      { name: 'Notifications', description: 'Notification management' }
     ]
   }
 })
 
-fastify.register(require('@fastify/swagger-ui'), {
-  routePrefix: '/docs'
-})
+fastify.register(require('@fastify/swagger-ui'), { routePrefix: '/docs' })
 
-// ─────────────────────────────────────
-// Routes
-// ─────────────────────────────────────
-fastify.register(
-  require('./modules/auth/auth.routes'),
-  {
-    prefix: '/api/auth'
-  }
-)
+// ─── Routes ───
+fastify.register(require('./modules/auth/auth.routes'), { prefix: '/api/auth' })
+fastify.register(require('./modules/notification/notification.routes'), { prefix: '/api/notifications' })
 
-fastify.register(
-  require('./modules/notification/notification.routes'),
-  {
-    prefix: '/api/notifications'
-  }
-)
+// ─── Health ───
+fastify.get('/health', async () => ({ status: 'ok', message: 'NotiFlow is alive 🚀' }))
 
-// ─────────────────────────────────────
-// Health Check
-// ─────────────────────────────────────
-fastify.get('/health', async () => {
-  return {
-    status: 'ok',
-    message: 'NotiFlow is alive 🚀'
-  }
-})
-
-// ─────────────────────────────────────
-// Boot Application
-// ─────────────────────────────────────
+// ─── Boot ───
 const start = async () => {
   try {
-
     // PostgreSQL check
     const client = await pool.connect()
     client.release()
 
-    // SMTP check before accepting traffic
-    await verifyTransporter()
+    // SMTP check — non-blocking, server start hoga even if SMTP fails
+    verifyTransporter().catch((err) => {
+      console.error('⚠️ SMTP verify failed — emails may not work:', err.message)
+    })
 
     // Start Fastify
     await fastify.listen({
@@ -84,29 +51,18 @@ const start = async () => {
     // Start Queue Worker
     processQueue().catch((err) => {
       console.error('❌ Queue worker crashed:', err.message)
-      console.error(err.stack)
-      process.exit(1)
     })
 
     console.log('\n🚀 NotiFlow is live!')
     console.log('📦 PostgreSQL  → connected')
     console.log('⚡ Redis       → connected')
-    console.log('📧 SMTP        → verified')
-    console.log(
-      `🌐 Server      → http://localhost:${process.env.PORT || 3000}`
-    )
-    console.log(
-      `📄 Swagger     → http://localhost:${process.env.PORT || 3000}/docs`
-    )
-    console.log(
-      `❤️  Health      → http://localhost:${process.env.PORT || 3000}/health`
-    )
-    console.log('⚙️  Queue Worker → running')
-    console.log()
+    console.log(`🌐 Server      → http://localhost:${process.env.PORT || 3000}`)
+    console.log(`📄 Swagger     → http://localhost:${process.env.PORT || 3000}/docs`)
+    console.log(`❤️  Health      → http://localhost:${process.env.PORT || 3000}/health`)
+    console.log('⚙️  Queue Worker → running\n')
 
   } catch (err) {
     console.error('❌ Boot failed:', err.message)
-    if (err.stack) console.error(err.stack)
     process.exit(1)
   }
 }
