@@ -25,7 +25,7 @@ using fastify
 | Database | PostgreSQL (Neon) |
 | Cache / Queue | Redis (ioredis) |
 | Auth | JWT (access + refresh tokens) + BCrypt |
-| Email | Nodemailer (SMTP) |
+| Email | Resend (API) |
 | Validation | Fastify JSON Schema (built-in) |
 | API Docs | @fastify/swagger + @fastify/swagger-ui |
 
@@ -82,7 +82,7 @@ using fastify
 - [ ] Async notification queue
 
 ### Email
-- [ ] `config/mailer.js` — Nodemailer SMTP setup
+- [x] `config/mailer.js` — Resend setup (Render free tier fix)
 - [ ] Welcome email on register
 - [ ] Password change alert email
 
@@ -181,11 +181,8 @@ JWT_ACCESS_SECRET=your_access_secret
 JWT_REFRESH_SECRET=your_refresh_secret
 ACCESS_TOKEN_EXPIRY=15m
 REFRESH_TOKEN_EXPIRY=7d
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email
-SMTP_PASS=your_app_password
-SMTP_FROM=NotiFlow <your_email>
+RESEND_API_KEY=your_resend_api_key
+SMTP_FROM=NotiFlow <onboarding@resend.dev>
 ```
 
 ---
