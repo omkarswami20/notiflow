@@ -1,4 +1,5 @@
 const pool = require('../../config/db')
+const { pushToQueue } = require('./notification.queue')
 
 const getMyNotifications = async ({ userId, page, limit }) => {
   const offset = (page - 1) * limit
@@ -25,6 +26,28 @@ const getMyNotifications = async ({ userId, page, limit }) => {
     page,
     totalPages: Math.ceil(total / limit)
   }
+}
+
+const queueCustomNotification = async ({ userId, email, type, title, message }) => {
+  let targetEmail = email
+
+  // If no email was specified in the payload, look it up in the database using userId
+  if (!targetEmail) {
+    const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [userId])
+    if (userResult.rows.length === 0) {
+      throw new Error(`User with ID ${userId} not found in database`)
+    }
+    targetEmail = userResult.rows[0].email
+  }
+
+  // Push the job to the Redis queue
+  await pushToQueue({
+    userId,
+    email: targetEmail,
+    type,
+    title,
+    message
+  })
 }
 
 const markAsRead = async ({ notificationId, userId }) => {
@@ -78,7 +101,8 @@ module.exports = {
   markAsRead, 
   markAllRead, 
   deleteNotification, 
-  broadcastNotification 
+  broadcastNotification,
+  queueCustomNotification
 }   
 
 

@@ -1,6 +1,6 @@
-const { register, login, logout, changeUserPassword } = require('./auth.controller')
+const { register, login, logout, changeUserPassword, refresh } = require('./auth.controller')
 const { authenticate } = require('../../middlewares/auth.middleware')
-const { registerSchema, loginSchema, changePasswordSchema } = require('./auth.schema')
+const { registerSchema, loginSchema, changePasswordSchema, refreshSchema } = require('./auth.schema')
 
 const authRoutes = async (fastify, options) => {
   fastify.post('/register', {
@@ -22,6 +22,11 @@ const authRoutes = async (fastify, options) => {
     schema: { ...changePasswordSchema, tags: ['Auth'] },
     preHandler: [authenticate]
   }, changeUserPassword)
+
+  fastify.post('/refresh', {
+    schema: { ...refreshSchema, tags: ['Auth'] },
+    preHandler: []
+  }, refresh)
 }
 
 module.exports = authRoutes

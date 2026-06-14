@@ -1,4 +1,4 @@
-const { registerUser, loginUser, logoutUser, changePassword } = require('./auth.service')
+const { registerUser, loginUser, logoutUser, changePassword, refreshAccessToken } = require('./auth.service')
 const { sendSuccess, sendError } = require('../../utils/response.utils')
 ///  for the register user also status code 201 for new user 
 const register = async (request, reply) => {
@@ -51,5 +51,16 @@ const changeUserPassword = async (request, reply) => {
 }
 
 
+const refresh = async (request, reply) => {
+  try {
+    const data = await refreshAccessToken({
+      refreshToken: request.body.refreshToken
+    })
+    return sendSuccess(reply, data, 'Token refreshed successfully')
+  } catch (err) {
+    return sendError(reply, err.message, 401)
+  }
+}
+
 // exports ()
-module.exports = { register, login, logout, changeUserPassword }
+module.exports = { register, login, logout, changeUserPassword, refresh }

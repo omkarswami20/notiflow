@@ -9,7 +9,7 @@ const authenticate = async (request, reply) => {
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
 
-            return sendError(reply, 401, 'Acces token is missing or Invalid')
+            return sendError(reply, 'Access token is missing or invalid', 401)
         }
 
         // extract the token 

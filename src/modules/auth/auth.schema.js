@@ -14,7 +14,7 @@ const registerSchema = {
     }
 } 
 
-const LoginSchema = {
+const loginSchema = {
     body:{
         type:'object',
         required:['email', 'password'],
@@ -37,4 +37,14 @@ const changePasswordSchema = {
   }
 }
 
-module.exports = { registerSchema, LoginSchema , changePasswordSchema }
+const refreshSchema = {
+  body: {
+    type: 'object',
+    required: ['refreshToken'],
+    properties: {
+      refreshToken: { type: 'string' }
+    }
+  }
+}
+
+module.exports = { registerSchema, loginSchema, changePasswordSchema, refreshSchema }

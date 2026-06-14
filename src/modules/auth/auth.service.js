@@ -1,6 +1,6 @@
 const pool = require('../../config/db')
 const { hashPassword, comparePassword } = require('../../utils/hash.utils')
-const { signAccessToken, signRefreshToken } = require('../../utils/jwt.utils')
+const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../utils/jwt.utils')
 const { pushToQueue } = require('../notification/notification.queue')
 
 const registerUser = async ({ name, email, password }) => {
@@ -142,9 +142,38 @@ const changePassword = async ({
   })
 }
 
+const refreshAccessToken = async ({ refreshToken }) => {
+  // 1. Verify token signature and expiry
+  const decoded = verifyRefreshToken(refreshToken)
+
+  // 2. Check token in Database (revocation & DB expiry check)
+  const result = await pool.query(
+    `SELECT rt.*, u.id as user_id, u.role, u.email 
+     FROM refresh_tokens rt
+     JOIN users u ON rt.user_id = u.id
+     WHERE rt.token = $1 AND rt.is_revoked = false AND rt.expires_at > NOW()`,
+    [refreshToken]
+  )
+
+  if (result.rows.length === 0) {
+    throw new Error('Refresh token is invalid, revoked, or expired')
+  }
+
+  const user = result.rows[0]
+
+  // 3. Generate new access token
+  const accessToken = signAccessToken({
+    id: user.user_id,
+    role: user.role
+  })
+
+  return { accessToken }
+}
+
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
-  changePassword
+  changePassword,
+  refreshAccessToken
 }

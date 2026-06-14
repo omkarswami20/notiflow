@@ -1,4 +1,4 @@
-const { getNotifications, readNotification, readAllNotifications, removeNotification, broadcast } = require('./notification.controller')
+const { getNotifications, readNotification, readAllNotifications, removeNotification, broadcast, sendCustomNotification } = require('./notification.controller')
 const { authenticate } = require('../../middlewares/auth.middleware')
 const { role } = require('../../middlewares/role.middleware')
 const { getNotificationsSchema, broadcastSchema } = require('./notification.schema')
@@ -8,6 +8,11 @@ const notificationRoutes = async (fastify, options) => {
     schema: { ...getNotificationsSchema, tags: ['Notifications'] },
     preHandler: [authenticate]
   }, getNotifications)
+
+  fastify.post('/send', {
+    schema: { tags: ['Notifications'] },
+    preHandler: [authenticate]
+  }, sendCustomNotification)
 
   fastify.patch('/:id/read', {
     schema: { tags: ['Notifications'] },

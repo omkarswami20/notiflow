@@ -3,7 +3,8 @@ const {
   markAsRead, 
   markAllRead, 
   deleteNotification, 
-  broadcastNotification 
+  broadcastNotification,
+  queueCustomNotification
 } = require('./notification.service')
 const { sendSuccess, sendError } = require('../../utils/response.utils')
 
@@ -15,6 +16,22 @@ const getNotifications = async (request, reply) => {
       limit: request.query.limit
     })
     return sendSuccess(reply, data, 'Notifications fetched')
+  } catch (err) {
+    return sendError(reply, err.message, 400)
+  }
+}
+
+const sendCustomNotification = async (request, reply) => {
+  try {
+    const { userId, type, title, message, email } = request.body
+    await queueCustomNotification({
+      userId: userId || request.user.id, // defaults to current logged in user to satisfy database foreign keys
+      email,
+      type: type || 'WELCOME',
+      title: title || 'Custom Notification',
+      message: message || 'Hello!'
+    })
+    return sendSuccess(reply, null, 'Notification queued successfully')
   } catch (err) {
     return sendError(reply, err.message, 400)
   }
@@ -67,5 +84,6 @@ module.exports = {
   readNotification, 
   readAllNotifications, 
   removeNotification, 
-  broadcast 
+  broadcast,
+  sendCustomNotification
 }
