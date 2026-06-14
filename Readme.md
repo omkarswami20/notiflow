@@ -25,7 +25,7 @@ using fastify
 | Database | PostgreSQL (Neon) |
 | Cache / Queue | Redis (ioredis) |
 | Auth | JWT (access + refresh tokens) + BCrypt |
-| Email | Resend (API) |
+| Email | Brevo / Resend (API) |
 | Validation | Fastify JSON Schema (built-in) |
 | API Docs | @fastify/swagger + @fastify/swagger-ui |
 
@@ -181,8 +181,21 @@ JWT_ACCESS_SECRET=your_access_secret
 JWT_REFRESH_SECRET=your_refresh_secret
 ACCESS_TOKEN_EXPIRY=15m
 REFRESH_TOKEN_EXPIRY=7d
+# Production Email Option A (Brevo API - Free & No Domain Required)
+BREVO_API_KEY=your_brevo_api_key
+SMTP_FROM=your_verified_gmail@gmail.com
+
+# Production Email Option B (Resend API - Requires Custom Domain)
 RESEND_API_KEY=your_resend_api_key
 SMTP_FROM=NotiFlow <onboarding@resend.dev>
+
+# Local Development Email (SMTP Fallback)
+# Leave BREVO_API_KEY and RESEND_API_KEY empty to fall back to SMTP
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+# SMTP_FROM=NotiFlow <your_email@gmail.com>
 ```
 
 ---

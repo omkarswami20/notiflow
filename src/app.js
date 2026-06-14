@@ -53,13 +53,28 @@ const start = async () => {
       console.error('❌ Queue worker crashed:', err.message)
     })
 
-    console.log('\n🚀 NotiFlow is live!')
-    console.log('📦 PostgreSQL  → connected')
-    console.log('⚡ Redis       → connected')
-    console.log(`🌐 Server      → http://localhost:${process.env.PORT || 3000}`)
-    console.log(`📄 Swagger     → http://localhost:${process.env.PORT || 3000}/docs`)
-    console.log(`❤️  Health      → http://localhost:${process.env.PORT || 3000}/health`)
-    console.log('⚙️  Queue Worker → running\n')
+    const port = process.env.PORT || 3000
+    const mailProvider = process.env.RESEND_API_KEY 
+      ? 'Resend API ✉️' 
+      : (process.env.BREVO_API_KEY ? 'Brevo API ✉️' : 'SMTP (Gmail/Local) 📧')
+
+    const localUrl = `http://localhost:${port}`
+    const docsUrl = `${localUrl}/docs`
+    const healthUrl = `${localUrl}/health`
+
+    console.log('\n┌──────────────────────────────────────────────────────────────┐')
+    console.log('│   ⚡   N O T I F L O W   S E R V I C E   O N L I N E   🚀    │')
+    console.log('├──────────────────────────────────────────────────────────────┤')
+    console.log('│  🟢 Server Status    ::  Online & Listening                  │')
+    console.log('│  🐘 Database (Postgres)::  Connected                         │')
+    console.log('│  🔑 Cache & Queue    ::  Redis Connected                     │')
+    console.log(`│  📧 Email Provider   ::  ${mailProvider.padEnd(28)} │`)
+    console.log('│  ⚙️  Queue Worker     ::  Running in Background               │')
+    console.log('├──────────────────────────────────────────────────────────────┤')
+    console.log(`│  🌐 Local Server     ::  ${localUrl.padEnd(36)} │`)
+    console.log(`│  📄 Swagger API Docs ::  ${docsUrl.padEnd(36)} │`)
+    console.log(`│  ❤️  Health Endpoint ::  ${healthUrl.padEnd(36)} │`)
+    console.log('└──────────────────────────────────────────────────────────────┘\n')
 
   } catch (err) {
     console.error('❌ Boot failed:', err.message)
