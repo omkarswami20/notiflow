@@ -1,94 +1,131 @@
 # NotiFlow — Auth & Notification Engine
 
-A production-grade backend REST API built with **Node.js + Fastify**, featuring a complete authentication system and an asynchronous notification pipeline.
+<div align="center">
 
-> Built manually from scratch — no auth libraries, no ORM, no boilerplate.
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Fastify](https://img.shields.io/badge/Fastify-000000?style=for-the-badge&logo=fastify&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 
-using fastify 
+**A production-grade backend REST API combining a secure authentication system with an asynchronous notification pipeline.**
+
+[Live API](https://notiflow-1.onrender.com) • [Swagger Docs](https://notiflow-1.onrender.com/docs) • [Health Check](https://notiflow-1.onrender.com/health)
+
+</div>
 
 ---
 
-## 🚀 Live Demo
+## 🧠 What is NotiFlow?
 
-- **API Base URL:** _coming soon (Render)_
-- **Swagger Docs:** `{base_url}/docs`
-- **Health Check:** `{base_url}/health`
+NotiFlow is a **pure backend API engine** built from scratch — no auth libraries, no ORM, no boilerplate. It solves two real-world backend problems:
+
+1. **Secure Authentication** — JWT-based auth with access + refresh token rotation, BCrypt password hashing, and role-based access control (RBAC)
+2. **Async Notification Delivery** — Redis queue-based pipeline that decouples event triggers from delivery, ensuring API responses are never blocked by email processing
+
+> Built manually to demonstrate deep backend fundamentals — not vibe-coded, not copied.
+
+---
+
+## 🎯 Project Scope
+
+| Area | What was built |
+|---|---|
+| **Auth System** | Register, Login, Logout, Change Password — manually implemented |
+| **JWT Strategy** | Dual-token — short-lived access token (15m) + long-lived refresh token (7d) |
+| **Security** | BCrypt hashing, refresh token revocation, RBAC middleware, IDOR prevention |
+| **Notification Engine** | In-app notifications with read/unread state, pagination, admin broadcast |
+| **Async Queue** | Redis-based job queue — events push jobs, background worker processes them |
+| **Email Delivery** | Nodemailer SMTP — triggered on register and password change |
+| **API Docs** | Auto-generated Swagger UI from Fastify JSON Schema |
+| **Deployment** | Live on Render + Neon (PostgreSQL) + Upstash (Redis) |
+
+### Intentionally excluded:
+- No frontend (pure backend API — consumed by any client)
+- No ORM (raw SQL — real database knowledge)
+- No Passport.js (JWT implemented manually)
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js |
-| Framework | Fastify |
-| Database | PostgreSQL (Neon) |
-| Cache / Queue | Redis (ioredis) |
-| Auth | JWT (access + refresh tokens) + BCrypt |
-| Email | Brevo / Resend (API) |
-| Validation | Fastify JSON Schema (built-in) |
-| API Docs | @fastify/swagger + @fastify/swagger-ui |
+| Layer | Technology | Why |
+|---|---|---|
+| Runtime | Node.js | Async-first, event-driven |
+| Framework | Fastify | Built-in JSON Schema validation, faster than Express |
+| Database | PostgreSQL (Neon) | Relational schema, strong SQL |
+| Cache / Queue | Redis (Upstash) | Token blacklisting + async notification queue |
+| Auth | JWT + BCrypt | Manual — no passport.js |
+| Email | Nodemailer | SMTP email delivery |
+| Validation | Fastify JSON Schema | Built-in — no Zod/Joi needed |
+| API Docs | @fastify/swagger | Auto-generated from route schemas |
+| Deploy | Render | Auto-deploy on git push |
 
 ---
 
-## ✅ What's Done
+## 🗄️ Database Schema
 
-### Project Setup
-- [x] Fastify server with logger
-- [x] PostgreSQL connection (Neon)
-- [x] Swagger UI at `/docs`
-- [x] Health check at `/health`
-- [x] Environment variables via dotenv
-- [x] `.gitignore` — `.env` and `node_modules` excluded
+```sql
+users (id, name, email, password, role, created_at)
+refresh_tokens (id, user_id, token, expires_at, is_revoked)
+notifications (id, user_id, type, title, message, is_read, created_at)
+notification_queue_log (id, notification_id, status, processed_at, error_message)
+```
 
-### Database
-- [x] `users` table
-- [x] `refresh_tokens` table
-- [x] `notifications` table
-- [x] `notification_queue_log` table
-
-### Utils
-- [x] `hash.utils.js` — BCrypt hash + compare
-- [x] `jwt.utils.js` — sign + verify access/refresh tokens
-- [x] `response.utils.js` — standard API response format
-
-### Auth Module
-- [x] `auth.schema.js` — Fastify JSON Schema validation
-- [x] `auth.service.js` — register, login, logout, changePassword
-- [x] `auth.controller.js` — request/response handling
-- [x] `auth.middleware.js` — JWT verify + attach user to request
-- [x] `auth.routes.js` — routes with preHandler middleware
-- [x] Routes registered in `app.js` at `/api/auth`
+**4 normalized tables. Raw SQL. Parameterized queries (SQL injection safe).**
 
 ---
 
-## 🔄 Pending
+## 📡 API Endpoints
 
-### Auth Module
-- [ ] Fix `response.utils.js` typos — `success`, `message` spelling
-- [ ] Test all auth endpoints in Postman/Swagger
-- [ ] `role.middleware.js` — admin role check
+### Auth — `/api/auth`
 
-### Notification Module
-- [ ] `notification.schema.js`
-- [ ] `notification.service.js`
-- [ ] `notification.controller.js`
-- [ ] `notification.routes.js`
-- [ ] `notification.queue.js` — Redis queue processor
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/register` | ❌ | Register — triggers WELCOME notification |
+| `POST` | `/login` | ❌ | Login — returns access + refresh token |
+| `POST` | `/logout` | ✅ JWT | Revoke refresh token |
+| `PATCH` | `/change-password` | ✅ JWT | Change password — triggers ALERT notification |
 
-### Redis
-- [ ] `config/redis.js` — ioredis client setup
-- [ ] Token blacklisting on logout
-- [ ] Async notification queue
+### Notifications — `/api/notifications`
 
-### Email
-- [x] `config/mailer.js` — Resend setup (Render free tier fix)
-- [ ] Welcome email on register
-- [ ] Password change alert email
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/` | ✅ JWT | Get my notifications (paginated) |
+| `PATCH` | `/:id/read` | ✅ JWT | Mark single notification as read |
+| `PATCH` | `/read-all` | ✅ JWT | Mark all as read |
+| `DELETE` | `/:id` | ✅ JWT | Delete a notification |
+| `POST` | `/broadcast` | ✅ Admin | Broadcast to all users (async queued) |
 
-### Deploy
-- [ ] Deploy backend on Render
-- [ ] Update README with live URL
+---
+
+## ⚙️ How the Async Queue Works
+
+```
+User registers
+      ↓
+API pushes job to Redis → returns 201 instantly
+      ↓
+Background worker (BRPOP) picks up job
+      ↓
+Inserts notification into PostgreSQL
+      ↓
+Sends email via Nodemailer SMTP
+      ↓
+Logs result in notification_queue_log
+```
+
+**Why queue?** — Email delivery is slow. Queue decouples the concern — API stays fast, email goes in background.
+
+---
+
+## 🔐 Security Highlights
+
+- **Dual JWT tokens** — different secrets for access and refresh. Compromise of one doesn't affect the other.
+- **BCrypt hashing** — 10 salt rounds. Passwords never stored in plain text.
+- **IDOR Prevention** — all notification queries check `user_id` — users can never touch another user's data.
+- **User Enumeration Prevention** — login returns same error for wrong email and wrong password.
+- **Parameterized Queries** — all SQL uses `$1, $2` placeholders. SQL injection not possible.
 
 ---
 
@@ -98,9 +135,9 @@ using fastify
 notiflow/
 ├── src/
 │   ├── config/
-│   │   ├── db.js
-│   │   ├── redis.js
-│   │   └── mailer.js
+│   │   ├── db.js              → PostgreSQL pool (Neon)
+│   │   ├── redis.js           → ioredis client (Upstash)
+│   │   └── mailer.js          → Nodemailer SMTP
 │   ├── modules/
 │   │   ├── auth/
 │   │   │   ├── auth.routes.js
@@ -122,50 +159,19 @@ notiflow/
 │   │   └── response.utils.js
 │   └── app.js
 ├── .env.example
-├── README.md
 └── package.json
 ```
 
 ---
 
-## 🔐 API Endpoints
-
-### Auth — `/api/auth`
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| POST | `/register` | No | Register new user |
-| POST | `/login` | No | Login, returns tokens |
-| POST | `/logout` | JWT | Revoke refresh token |
-| PATCH | `/change-password` | JWT | Change user password |
-
-### Notifications — `/api/notifications` _(coming soon)_
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| GET | `/` | JWT | Get my notifications (paginated) |
-| PATCH | `/:id/read` | JWT | Mark as read |
-| PATCH | `/read-all` | JWT | Mark all as read |
-| DELETE | `/:id` | JWT | Delete notification |
-| POST | `/broadcast` | Admin | Broadcast to all users |
-
----
-
-## ⚙️ Setup & Run Locally
+## 🚀 Run Locally
 
 ```bash
-# Clone
 git clone https://github.com/omkarswami20/notiflow.git
 cd notiflow
-
-# Install dependencies
 npm install
-
-# Setup environment variables
 cp .env.example .env
-# Fill in your values in .env
-
-# Run in development
+# Fill in your values
 npm run dev
 ```
 
@@ -174,34 +180,47 @@ npm run dev
 ## 🔑 Environment Variables
 
 ```env
-DATABASE_URL=your_postgresql_connection_string
-REDIS_URL=redis://localhost:6379
+DATABASE_URL=your_neon_postgresql_connection_string
+REDIS_URL=your_upstash_redis_connection_string
 PORT=3000
-JWT_ACCESS_SECRET=your_access_secret
-JWT_REFRESH_SECRET=your_refresh_secret
+JWT_ACCESS_SECRET=your_strong_access_secret
+JWT_REFRESH_SECRET=your_strong_refresh_secret
 ACCESS_TOKEN_EXPIRY=15m
 REFRESH_TOKEN_EXPIRY=7d
-# Production Email Option A (Brevo API - Free & No Domain Required)
-BREVO_API_KEY=your_brevo_api_key
-SMTP_FROM=your_verified_gmail@gmail.com
-
-# Production Email Option B (Resend API - Requires Custom Domain)
-RESEND_API_KEY=your_resend_api_key
-SMTP_FROM=NotiFlow <onboarding@resend.dev>
-
-# Local Development Email (SMTP Fallback)
-# Leave BREVO_API_KEY and RESEND_API_KEY empty to fall back to SMTP
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-# SMTP_FROM=NotiFlow <your_email@gmail.com>
+SMTP_USER=your_gmail@gmail.com
+SMTP_PASS=your_gmail_app_password
+SMTP_FROM=NotiFlow <your_gmail@gmail.com>
+```
+
+---
+
+## 🌐 Live Demo
+
+| Resource | URL |
+|---|---|
+| API Base | https://notiflow-1.onrender.com |
+| Swagger UI | https://notiflow-1.onrender.com/docs |
+| Health Check | https://notiflow-1.onrender.com/health |
+
+```bash
+# Register
+curl -X POST https://notiflow-1.onrender.com/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"password123"}'
+
+# Login
+curl -X POST https://notiflow-1.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
 ```
 
 ---
 
 ## 👨‍💻 Author
 
-**Omkar Swami**
-- GitHub: [@omkarswami20](https://github.com/omkarswami20)
-- LinkedIn: [linkedin.com/in/omkarswami20](https://linkedin.com/in/omkarswami20)
+**Omkar Swami** — Full-Stack Software Engineer
+
+[![GitHub](https://img.shields.io/badge/GitHub-omkarswami20-181717?style=flat&logo=github)](https://github.com/omkarswami20)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-omkarswami20-0077B5?style=flat&logo=linkedin)](https://linkedin.com/in/omkarswami20)
